@@ -31,7 +31,8 @@ Before you get too deep into this, you will need some tools, depending on your o
 The following command in Ubuntu (or related) Linux will get you most of what you might
 
 ```
-sudo apt-get install build-essential cmake git g++
+sudo apt update
+sudo apt install build-essential cmake git g++ pkg-config libgl-dev libglu-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev 
 ```
 
 ### macOS
