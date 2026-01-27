@@ -10,6 +10,7 @@ class Framebuffer {
     Framebuffer(int w, int h);
 
     void clearToColor(vec3 color);
+    void clearToGradient(vec3 bottom_color, vec3 top_color);
 
     void exportToPNG(std::string filename);
 

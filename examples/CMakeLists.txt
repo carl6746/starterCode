@@ -14,6 +14,17 @@ target_link_libraries(test_pngWrite ${Boost_PROGRAM_OPTIONS_LIBRARIES})
 target_link_libraries(test_pngWrite PNG::PNG)
 target_link_libraries(test_pngWrite ZLIB::ZLIB)
 
+add_executable(main
+  main.cpp
+)
+target_link_libraries(main cs4212-util)
+target_link_libraries(main ${Boost_PROGRAM_OPTIONS_LIBRARIES})
+target_link_libraries(main PNG::PNG)
+target_link_libraries(main ZLIB::ZLIB)
+
+target_compile_definitions(main PRIVATE SOURCE_DIR="${CMAKE_SOURCE_DIR}/src")
+
+
 add_executable(test_readPNGFile
   test_readPNGFile.cpp
 )
