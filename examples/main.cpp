@@ -1,5 +1,5 @@
 #include <iostream>
-#include "Framebuffer.h"
+#include "components/Framebuffer.h"
 
 int main() {
     std::cout<<"Hello World"<<std::endl;
@@ -7,18 +7,19 @@ int main() {
     vec3 c1(1.0,0.65,0.98);
     fb1.clearToColor(c1);
 
-    fb1.exportToPNG("../src/myfile.png");
+    fb1.exportToPNG("../images/myfile.png");
 
     Framebuffer fb2(100,100);
     vec3 c2(.25,.5,.75);
     fb2.clearToColor(c2);
-    fb2.exportToPNG("../src/myfile2.png");
+    fb2.exportToPNG("../images/myfile2.png");
 
     Framebuffer fb3(250,250);
-    vec3 cbottom(241/255,187/255,51/255);
-    vec3 ctop(128/255,7/255,241/255);
-    fb3.clearToGradient(c1,c2);
-    fb3.exportToPNG("../src/myGradientFile.png");
+    vec3 cbottom(0.94,0.73,0.20);
+    vec3 ctop(0.50,0.03,0.94);
+    vec3 cpurp(1.0,0.57,0.82);
+    fb3.clearToGradient(cpurp,cbottom);
+    fb3.exportToPNG("../images/myGradientFile.png");
 
     return 0;
 }
