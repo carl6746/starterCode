@@ -1,5 +1,5 @@
 #pragma once
-#include "../vec3.h"
+#include "vec3.h"
 
 class Camera {
     public:
@@ -18,4 +18,6 @@ class Camera {
         double focalLength; //also called d
 
         double imageplane_width, imageplane_height;
+
+        //View is -Z
 };
