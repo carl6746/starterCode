@@ -2,8 +2,8 @@ add_library (cs4212-util
   ArgumentParsing.cpp ArgumentParsing.h
   handleGraphicsArgs.cpp handleGraphicsArgs.h
   model_obj.cpp model_obj.h
-  FrameBuffer.cpp FrameBuffer.h
-  vec3.h
+  components/FrameBuffer.cpp components/FrameBuffer.h
+  components/vec3.h components/perspectiveCamera.h components/sphere.cpp components/sphere.h
 )
 
 

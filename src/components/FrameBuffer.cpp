@@ -1,6 +1,6 @@
 #include "FrameBuffer.h"
 #include <png++/png.hpp>
-#include <algorithm>   // std::clamp
+#include <algorithm> 
 
 Framebuffer::Framebuffer()
     : width(100), height(100), fbStorage(width*height)
@@ -44,7 +44,7 @@ void Framebuffer::exportToPNG(std::string filename)
             png::byte g = static_cast<png::byte>(std::clamp(c.y(), 0.0, 255.0)*255.0);
             png::byte b = static_cast<png::byte>(std::clamp(c.z(), 0.0, 255.0)*255.0);
 
-            image[y][x] = png::rgb_pixel(r, g, b);
+            image[height-1-y][x] = png::rgb_pixel(r, g, b);
         }
     }
 
@@ -62,3 +62,11 @@ void Framebuffer::setPixelColor(int index, vec3 color)
     if (index < 0 || index >= static_cast<int>(fbStorage.size())) return;
     fbStorage[index] = color;
 };
+
+int Framebuffer::get_width() {
+    return width;
+}
+
+int Framebuffer::get_height() {
+    return height;
+}

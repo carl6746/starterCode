@@ -17,6 +17,9 @@ class Framebuffer {
     void setPixelColor(int i, int j, vec3 color);
     void setPixelColor(int index, vec3 color);
 
+    int get_width();
+    int get_height();
+
     private:
         int width, height;
         std::vector<vec3> fbStorage;

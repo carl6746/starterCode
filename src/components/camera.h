@@ -4,12 +4,20 @@
 
 class Camera {
     public:
-        Camera(): pos(0,0,0), U(1,0,0), V(0,1,0), W(0,0,1), focalLength(1.0), imageplane_width(0.25), imageplane_height(0.25) {}
-        Camera(vec3 pos, vec3 U, vec3 V, vec3 W, double focalLength, double imageplane_width, double imageplane_height) 
-            : pos(pos), U(U), V(V), W(W),focalLength(focalLength), imageplane_width(imageplane_width), imageplane_height(imageplane_height) {}
+        Camera(int pixel_nx, int pixel_ny): pos(0,0,0), U(1,0,0), V(0,1,0), W(0,0,1), focalLength(0.0325), imageplane_width(.5), imageplane_height(.5), nx(pixel_nx), ny(pixel_ny) {}
+        Camera(point3 pos, vec3 direction, double focalLength, int pixel_nx, int pixel_ny) 
+            : pos(pos),focalLength(focalLength), nx(pixel_nx), ny(pixel_ny) {
+                imageplane_width = 0.25;
+                double aspect_ratio = (double)nx/(double)ny;
+                imageplane_height = imageplane_width/aspect_ratio;
+                l = -imageplane_width * 0.5;
+                r =  imageplane_width * 0.5;
+                b = -imageplane_height * 0.5;
+                t =  imageplane_height * 0.5;
+            }
         virtual ~Camera() {}
 
-        virtual ray generateRay(int i, int j) = 0;
+        virtual ray generateRay(float i, float j) = 0;
 
     protected:
         vec3 pos;
@@ -19,8 +27,8 @@ class Camera {
 
         //We have to decide the unit
         double focalLength; //also called d
-
+        int nx, ny;
         double imageplane_width, imageplane_height;
-
-        //View is -Z
+        
+        double l, r, b, t;
 };
