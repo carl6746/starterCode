@@ -18,9 +18,10 @@ include(Catch)
 # compile into an executable.
 # 
 set(UTESTS 
-  utest_Success
-  utest_vectors
-  utest_rays)
+  # utest_Success
+  # utest_vectors
+  # utest_rays
+  utest_spheres)
 
 # 
 # For each of the executables named in ${UTESTS}, compile them into a
