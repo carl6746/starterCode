@@ -19,8 +19,8 @@ include(Catch)
 # 
 set(UTESTS 
   # utest_Success
-  # utest_vectors
-  # utest_rays
+  utest_vectors
+  utest_rays
   utest_spheres)
 
 # 
