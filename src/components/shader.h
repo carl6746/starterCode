@@ -3,8 +3,8 @@
 #include "shape.h"
 
 class Shader {
-    private:
-        virtual color rayColor( const HitStruct &h) = 0;
     public:
+        virtual color rayColor( const HitStruct &h) = 0;
+    protected:
 
 };
