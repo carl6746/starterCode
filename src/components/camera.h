@@ -17,7 +17,7 @@ class Camera {
             }
         virtual ~Camera() {}
 
-        virtual ray generateRay(float i, float j) = 0;
+        virtual ray generateRay(double i, double j) = 0;
 
     protected:
         vec3 pos;

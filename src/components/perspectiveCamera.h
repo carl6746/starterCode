@@ -11,9 +11,9 @@ class PerspectiveCamera : public Camera {
         };
 
         double u,v;
-        ray generateRay(float i, float j) override {
-            u = l + (r-l)*(i+0.5)/nx;
-            v = b + (t-b)*(j+0.5)/ny;
+        ray generateRay(double i, double j) override {
+            u = l + (r-l)*(i+(double)rand()/(double)RAND_MAX)/nx;
+            v = b + (t-b)*(j+(double)rand()/(double)RAND_MAX)/ny;
 
             ray tempRay(pos, -W*focalLength+U*u+V*v);
 

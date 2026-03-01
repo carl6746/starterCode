@@ -1,97 +1,81 @@
 #include <iostream>
+#include <cstdlib>
+#include <cstring>
+#include <random>
 #include <memory>
-#include "components/Framebuffer.h"
-#include "components/perspectiveCamera.h"
-#include "components/sphere.h"
-#include "components/triangle.h"
+#include "components/scene.h"
+#include "handleGraphicsArgs.h"
 // #include "components/shader.h"
-#include "components/lambert.h"
-#include "components/blinn.h"
-// #include "scene.h"
 
-int main() {
-    // point3 origin = {12.3,4.5,1.0};
-    // vec3 view = {9.7,1.0,-2.3};
-    // double focallength = 0.25;
-    // double image_plane_width = 0.5;
-    // double image_plane_height = 0.5;
-    // Framebuffer fb1(200,200);
+double randomOffSet() {
+    static std::uniform_real_distribution<double> distribution(0.0,1.0);
+    static std::mt19937 generator;
+    return distribution(generator);
+}
 
-    // point3 origin = {5,-5,3};
-    // vec3 view = {0,1,-1};
-    // double focallength = 0.05;
-    // double image_plane_width = 0.5;
-    // double image_plane_height = 0.5;
-    // Framebuffer fb1(200,200);
+int main(int argc, char *argv[]) {
+
+    sivelab::GraphicsArgs args;
+    args.process(argc, argv);
 
     point3 origin = {0,0,0};
     vec3 view = {0,0,-1};
-    double focallength = 1;
-    Framebuffer fb1(1000,1000);
+    double focallength = args.depthOfFieldDistance;
+    Framebuffer fb1(args.width,args.height);
 
-std::vector<std::shared_ptr<Shape>> SphereListLambert;
-std::vector<std::shared_ptr<Shape>> SphereListBlinn;
-
-SphereListLambert.push_back(std::make_shared<Sphere>(point3({-6,-6,-100}), 2, color({1.0,0.0,0.0})));
-SphereListLambert.push_back(std::make_shared<Sphere>(point3({-2,-2,-100}), 2, color({0.0,1.0,0.0})));
-SphereListLambert.push_back(std::make_shared<Sphere>(point3({-6,-2,-100}), 2, color({0.0,0.0,1.0})));
-SphereListLambert.push_back(std::make_shared<Sphere>(point3({-2,-6,-100}), 2, color({0.0,0.0,0.0})));
-SphereListLambert.push_back(std::make_shared<Sphere>(point3({-3,-3,-75}), 1.5, color({0.0,0.0,0.0})));
-SphereListBlinn.push_back(std::make_shared<Sphere>(point3({2,2,-100}), 2, color({1.0,0.0,0.0})));
-SphereListBlinn.push_back(std::make_shared<Sphere>(point3({6,6,-100}), 2, color({0.0,1.0,0.0})));
-SphereListBlinn.push_back(std::make_shared<Sphere>(point3({2,6,-100}), 2, color({0.0,0.0,1.0})));
-SphereListBlinn.push_back(std::make_shared<Sphere>(point3({6,2,-100}), 2, color({0.0,0.0,0.0})));
-SphereListBlinn.push_back(std::make_shared<Sphere>(point3({3,3,-75}), 1.5, color({0.0,0.0,0.0})));
-// SphereList.push_back(std::make_shared<Triangle>(point3{0.0,0.0,-75.0}, point3{0,5.0,-70.0}, point3{5.0,0,-70.0},color({0.0,0.0,0.0})));
-// SphereList.push_back(std::make_shared<Triangle>(point3{0.0,0.0,-75.0}, point3{0,5.0,-70.0}, point3{-5.0,0,-70.0},color({0.0,0.0,0.0})));
-// SphereList.push_back(std::make_shared<Triangle>(point3{0.0,0.0,-75.0}, point3{0,-5.0,-70.0}, point3{5.0,0,-70.0},color({0.0,0.0,0.0})));
-// SphereList.push_back(std::make_shared<Triangle>(point3{0.0,0.0,-75.0}, point3{0,-5.0,-70.0}, point3{-5.0,0,-70.0},color({0.0,0.0,0.0})));
-
+    HitStruct hit;
     PerspectiveCamera pc(origin, view, focallength, fb1.get_width(), fb1.get_height());
 
-   
-    fb1.clearToColor(color(1.0,1.0,1.0));
-    HitStruct hit;
+    std::vector<std::shared_ptr<Shape>> ShapeList;
 
-    std::vector<vec3> lightList = {vec3{2.0,10.0,10.0}};
-    Lambert lamb(lightList);
+    ShapeList.push_back(std::make_shared<Sphere>(point3(-20,15,-30),7,std::make_shared<Normal>()));
+    ShapeList.push_back(std::make_shared<Sphere>(point3(20,15,-30),7,std::make_shared<Lambert>(std::vector<vec3>({vec3({0,10,10})}),vec3({0.75,0.2,0.7}))));
+    ShapeList.push_back(std::make_shared<Sphere>(point3(0,5,-30),7,std::make_shared<Blinn>(vec3({0,10,10}),vec3(0,0,0))));
+    
+    ShapeList.push_back(std::make_shared<Sphere>(point3(0,25,-30),7,std::make_shared<Mirror>()));
 
-    Blinn blinnPhong(vec3{2.0,10.0,10.0},origin);
+    // ShapeList.push_back(std::make_shared<Sphere>(point3(0,0,-50),15,std::make_shared<Blinn>(vec3({0,10,10}),vec3(0,0,0))));
+    ShapeList.push_back(std::make_shared<Triangle>(point3({-100,-10,-100}),point3({-100,-10,100}),point3({100,-10,-100}),std::make_shared<Lambert>(std::vector<vec3>({vec3({0,10,10})}),vec3({0.75,0.75,0.75}))));
+    ShapeList.push_back(std::make_shared<Triangle>(point3({100,-10,100}),point3({100,-10,-100}),point3({-100,-10,100}),std::make_shared<Lambert>(std::vector<vec3>({vec3({0,10,10})}),vec3(0.75,0.75,0.75))));
+    // ShapeList.push_back(std::make_shared<Sphere>(point3({-7,0,-20}),5,std::make_shared<Blinn>(vec3({0,10,10}),vec3(0,0,0))));
+    // ShapeList.push_back(std::make_shared<Sphere>(point3({0,7,-15}),5,std::make_shared<Mirror>()));
+    // ShapeList.push_back(std::make_shared<Sphere>(point3({7,0,-10}),5,std::make_shared<Blinn>(vec3({0,10,10}),vec3(0,0,0))));
+    // // ShapeList.push_back(std::make_shared<Sphere>(point3({0,-10,-20}),5,std::make_shared<Blinn>(vec3({0,10,10}),vec3(0,0,0))));
+    // // ShapeList.push_back(std::make_shared<Sphere>(point3({0,10,-25}),5,std::make_shared<Blinn>(vec3({0,10,10}),vec3(0,0,0))));
+    // ShapeList.push_back(std::make_shared<Triangle>(point3({-100,-10,-100}),point3({-100,-10,100}),point3({100,-10,-100}),std::make_shared<Lambert>(std::vector<vec3>({vec3({0,10,10})}),vec3({0.75,0.75,0.75}))));
+    // ShapeList.push_back(std::make_shared<Triangle>(point3({100,-10,100}),point3({100,-10,-100}),point3({-100,-10,100}),std::make_shared<Lambert>(std::vector<vec3>({vec3({0,10,10})}),vec3(0.75,0.75,0.75))));
 
     
+    Scene sc(ShapeList,std::vector<vec3>({vec3({0,10,10})}));
+    int rpp_NSquare = 2;
 
-    for(int x = 0; x<fb1.get_width(); ++x) {
-        for(int y =0; y<fb1.get_height(); ++y) {
-            ray r = pc.generateRay(x,y);
-                double tmin = 1;
-                double tmax = 500.0; 
-            for(auto& iter : SphereListLambert) {
-                if(iter->intersect(r,tmin,tmax,hit)==true) {
-                    vec3 ray_direction_color = 0.5*(unit_vector(hit.normal) + vec3(1,1,1));
-                    fb1.setPixelColor(x,y,lamb.rayColor(hit));
-                    // fb1.setPixelColor(x,y,iter->getColor());
+    // #pragma omp parallel for
+    for(int y = 0; y<fb1.get_height(); ++y) {
+        for(int x =0; x<fb1.get_width(); ++x) {
+            
+            color c(0.0,0.0,0.0);
+
+            for(int p=0; p<rpp_NSquare; ++p) {
+                for(int q=0; q<rpp_NSquare; ++q) {
+                    
+                    double tmin = 1;
+                    double tmax = std::numeric_limits<double>::infinity(); 
+
+                    double pOffSet = (p + randomOffSet())/rpp_NSquare;
+                    double qOffSet = (q + randomOffSet())/rpp_NSquare;
+
+                    ray r = pc.generateRay(x+p,y+q);
+                    c += sc.computeRayColor(r,tmin,tmax,3);
                 }
             }
-            for(auto& iter : SphereListBlinn) {
-                if(iter->intersect(r,tmin,tmax,hit)==true) {
-                    vec3 ray_direction_color = 0.5*(unit_vector(hit.normal) + vec3(1,1,1));
-                    fb1.setPixelColor(x,y,blinnPhong.rayColor(hit));
-                    // fb1.setPixelColor(x,y,iter->getColor());
-                }
-               
-            }
-
+            c /= (rpp_NSquare * rpp_NSquare);
+            fb1.setPixelColor(x,y,c);
         }
     }
-    // for(int x = 0; x<fb1.get_width(); ++x) {
-    //     for(int y =0; y<fb1.get_height(); ++y) {
-    //         ray r = pc.generateRay(x,y);
-    //         vec3 ray_direction_color = 0.5*(unit_vector(r.direction()) + vec3(1,1,1));
 
-    //         fb1.setPixelColor(x,y,ray_direction_color);
-    //     }
-    // }
-    fb1.exportToPNG("../images/normalShaderTest.png");
+    std::cout<<"Made it out of loops"<<std::endl;
 
+    fb1.exportToPNG("../images/MultipleShaders.png");
+    std::cout << "Image saved" <<std::endl;
     return 0;
 }

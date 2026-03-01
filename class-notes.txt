@@ -20,6 +20,37 @@ Reference previous framebuffers:
     fb3.exportToPNG("../images/myGradientFile.png");
     }
 
+
+ for(int x = 0; x<fb1.get_width(); ++x) {
+        for(int y =0; y<fb1.get_height(); ++y) {
+            ray r = pc.generateRay(x,y);
+                double tmin = 1;
+                double tmax = 500.0; 
+            for(auto& iter : SphereListLambert) {
+                if(iter->intersect(r,tmin,tmax,hit)==true) {
+                    fb1.setPixelColor(x,y,lamb.rayColor(hit));
+                    // fb1.setPixelColor(x,y,iter->getColor());
+                }
+            }
+            for(auto& iter : SphereListBlinn) {
+                if(iter->intersect(r,tmin,tmax,hit)==true) {
+                    fb1.setPixelColor(x,y,blinnPhong.rayColor(hit));
+                    // fb1.setPixelColor(x,y,iter->getColor());
+                }
+               
+            }
+            // for(auto& iter : TriangleLambertian) {
+            // if(iter->intersect(r,tmin,tmax,hit)==true) {
+            //     vec3 ray_direction_color = 0.5*(unit_vector(hit.normal) + vec3(1,1,1));
+            //     fb1.setPixelColor(x,y,metalShader.rayColor(hit));
+            //     // fb1.setPixelColor(x,y,iter->getColor());
+            // }
+            
+            // }
+
+        }
+    }
+
 int main() {
     // point3 origin = {12.3,4.5,1.0};
     // vec3 view = {9.7,1.0,-2.3};
@@ -93,3 +124,10 @@ Domain of pixel coordinates:
     
 Aspect ratio: (Don't forget)
     width/height
+
+What tmin and tmax should you choose for shadow rays?
+    (tmin is 1,  tmax is INFINITY) -> From Eye
+    (tmin is 0.0001, tmax = 1, d=lightPosition - ptShadow ) -> From Shadow
+    1.0e^8 [smallest floating point value]
+
+Can make the shadow a bool that checks if it hit the light or not.

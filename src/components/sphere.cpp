@@ -22,9 +22,11 @@ bool Sphere::intersect(const ray &ray,const double tmin, double &tmax, HitStruct
     }
 
     tmax = t;
+    rec.r = ray;
     rec.t = t;
     rec.p = ray.at(rec.t);
     rec.normal = unit_vector(rec.p-center);
+    rec.material = this->material;
 
     return true;
 }
