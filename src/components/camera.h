@@ -4,10 +4,12 @@
 
 class Camera {
     public:
+        std::string type;
+        Camera(): pos(0,0,0), U(1,0,0), V(0,1,0), W(0,0,1), focalLength(0.0325), imageplane_width(.5), imageplane_height(.5), nx(100), ny(100) {};
         Camera(int pixel_nx, int pixel_ny): pos(0,0,0), U(1,0,0), V(0,1,0), W(0,0,1), focalLength(0.0325), imageplane_width(.5), imageplane_height(.5), nx(pixel_nx), ny(pixel_ny) {}
-        Camera(point3 pos, vec3 direction, double focalLength, int pixel_nx, int pixel_ny) 
+        Camera(point3 pos, vec3 direction, double focalLength, double imageplane_width, int pixel_nx, int pixel_ny) 
             : pos(pos),focalLength(focalLength), nx(pixel_nx), ny(pixel_ny) {
-                imageplane_width = 0.25;
+                // imageplane_width = 0.25;
                 double aspect_ratio = (double)nx/(double)ny;
                 imageplane_height = imageplane_width/aspect_ratio;
                 l = -imageplane_width * 0.5;

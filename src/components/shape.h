@@ -14,8 +14,11 @@ struct HitStruct {
 
 class Shape {
     public:
+        std::string type;
         Shape() {}
         virtual ~Shape() {};
+        virtual std::shared_ptr<Shader> getShader() const = 0;
+        virtual color getColor() const = 0;
         virtual bool intersect(const ray &ray, const double tmin, double &tmax, HitStruct& rec) = 0;
     protected:
 };

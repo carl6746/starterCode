@@ -30,3 +30,12 @@ bool Sphere::intersect(const ray &ray,const double tmin, double &tmax, HitStruct
 
     return true;
 }
+
+vec3 Sphere::getColor() const{
+    return col;
+}
+
+std::shared_ptr<Shader> Sphere::getShader() const{
+    return material;
+}
+

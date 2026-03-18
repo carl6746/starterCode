@@ -41,3 +41,12 @@ bool Triangle::intersect(const ray &ray,const double tmin, double &tmax, HitStru
 
     return true;
 } 
+
+vec3 Triangle::getColor() const{
+    return col;
+}
+
+std::shared_ptr<Shader> Triangle::getShader() const{
+    return material;
+}
+

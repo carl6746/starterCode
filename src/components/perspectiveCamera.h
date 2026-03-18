@@ -5,8 +5,8 @@
 
 class PerspectiveCamera : public Camera {
     public:
-        PerspectiveCamera() : Camera(100,100) {};
-        PerspectiveCamera(point3 pos, vec3 direction, double focalLength, int pixel_nx, int pixel_ny) : Camera( pos,  direction,  focalLength, pixel_nx,  pixel_ny) {
+        PerspectiveCamera() : Camera() {};
+        PerspectiveCamera(point3 pos, vec3 direction, double focalLength, double imageplane_width, int pixel_nx, int pixel_ny) : Camera( pos,  direction,  focalLength, imageplane_width, pixel_nx,  pixel_ny) {
             create_basis(direction);
         };
 

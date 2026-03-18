@@ -5,7 +5,10 @@
 #include <memory>
 #include "components/scene.h"
 #include "handleGraphicsArgs.h"
-// #include "components/shader.h"
+#include "components/shader.h"
+#include "components/ISceneLoader.h"
+#include "components/SceneLoader.h"
+#include "components/SceneParser_JSON.cpp"
 
 double randomOffSet() {
     static std::uniform_real_distribution<double> distribution(0.0,1.0);
@@ -13,41 +16,30 @@ double randomOffSet() {
     return distribution(generator);
 }
 
-int main(int argc, char *argv[]) {
-
+int main(int argc, char* argv[]) {
     sivelab::GraphicsArgs args;
     args.process(argc, argv);
 
-    point3 origin = {0,0,0};
-    vec3 view = {0,0,-1};
+    Scene sc;
+    
+    std::shared_ptr<ISceneLoader> loader = std::make_shared<SceneLoader>(sc);
+    SceneParser_JSON parser(loader);
+
+    std::string filename= "C:/Users/ajcar/CS4212/starterCode/sceneData-main/scenes_A/LambertianChalkSpheres.json";;
+    parser.parseFileData(filename);
+
+    auto pc = sc.getCamera();
+        if (!pc) {
+            std::cerr << "No camera loaded!" << std::endl;
+            return 1;
+        }
+
     double focallength = args.depthOfFieldDistance;
     Framebuffer fb1(args.width,args.height);
 
     HitStruct hit;
-    PerspectiveCamera pc(origin, view, focallength, fb1.get_width(), fb1.get_height());
 
-    std::vector<std::shared_ptr<Shape>> ShapeList;
-
-    ShapeList.push_back(std::make_shared<Sphere>(point3(-20,15,-30),7,std::make_shared<Normal>()));
-    ShapeList.push_back(std::make_shared<Sphere>(point3(20,15,-30),7,std::make_shared<Lambert>(std::vector<vec3>({vec3({0,10,10})}),vec3({0.75,0.2,0.7}))));
-    ShapeList.push_back(std::make_shared<Sphere>(point3(0,5,-30),7,std::make_shared<Blinn>(vec3({0,10,10}),vec3(0,0,0))));
-    
-    ShapeList.push_back(std::make_shared<Sphere>(point3(0,25,-30),7,std::make_shared<Mirror>()));
-
-    // ShapeList.push_back(std::make_shared<Sphere>(point3(0,0,-50),15,std::make_shared<Blinn>(vec3({0,10,10}),vec3(0,0,0))));
-    ShapeList.push_back(std::make_shared<Triangle>(point3({-100,-10,-100}),point3({-100,-10,100}),point3({100,-10,-100}),std::make_shared<Lambert>(std::vector<vec3>({vec3({0,10,10})}),vec3({0.75,0.75,0.75}))));
-    ShapeList.push_back(std::make_shared<Triangle>(point3({100,-10,100}),point3({100,-10,-100}),point3({-100,-10,100}),std::make_shared<Lambert>(std::vector<vec3>({vec3({0,10,10})}),vec3(0.75,0.75,0.75))));
-    // ShapeList.push_back(std::make_shared<Sphere>(point3({-7,0,-20}),5,std::make_shared<Blinn>(vec3({0,10,10}),vec3(0,0,0))));
-    // ShapeList.push_back(std::make_shared<Sphere>(point3({0,7,-15}),5,std::make_shared<Mirror>()));
-    // ShapeList.push_back(std::make_shared<Sphere>(point3({7,0,-10}),5,std::make_shared<Blinn>(vec3({0,10,10}),vec3(0,0,0))));
-    // // ShapeList.push_back(std::make_shared<Sphere>(point3({0,-10,-20}),5,std::make_shared<Blinn>(vec3({0,10,10}),vec3(0,0,0))));
-    // // ShapeList.push_back(std::make_shared<Sphere>(point3({0,10,-25}),5,std::make_shared<Blinn>(vec3({0,10,10}),vec3(0,0,0))));
-    // ShapeList.push_back(std::make_shared<Triangle>(point3({-100,-10,-100}),point3({-100,-10,100}),point3({100,-10,-100}),std::make_shared<Lambert>(std::vector<vec3>({vec3({0,10,10})}),vec3({0.75,0.75,0.75}))));
-    // ShapeList.push_back(std::make_shared<Triangle>(point3({100,-10,100}),point3({100,-10,-100}),point3({-100,-10,100}),std::make_shared<Lambert>(std::vector<vec3>({vec3({0,10,10})}),vec3(0.75,0.75,0.75))));
-
-    
-    Scene sc(ShapeList,std::vector<vec3>({vec3({0,10,10})}));
-    int rpp_NSquare = 2;
+    int rpp_NSquare = args.rpp;
 
     // #pragma omp parallel for
     for(int y = 0; y<fb1.get_height(); ++y) {
@@ -64,7 +56,7 @@ int main(int argc, char *argv[]) {
                     double pOffSet = (p + randomOffSet())/rpp_NSquare;
                     double qOffSet = (q + randomOffSet())/rpp_NSquare;
 
-                    ray r = pc.generateRay(x+p,y+q);
+                    ray r = pc->generateRay(x+p,y+q);
                     c += sc.computeRayColor(r,tmin,tmax,3);
                 }
             }
@@ -75,7 +67,9 @@ int main(int argc, char *argv[]) {
 
     std::cout<<"Made it out of loops"<<std::endl;
 
-    fb1.exportToPNG("../images/MultipleShaders.png");
+    fb1.exportToPNG("../images/JSONTest.png");
     std::cout << "Image saved" <<std::endl;
     return 0;
 }
+
+
