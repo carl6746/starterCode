@@ -53,7 +53,7 @@ int main(void)
         std::cerr <<"GLEW Error! glewInit failed, exiting."<< std::endl;
         exit(EXIT_FAILURE);
     }
-
+    
     const GLubyte* renderer = glGetString (GL_RENDERER);
     const GLubyte* version = glGetString (GL_VERSION);
     std::cout << "Renderer: " << renderer << std::endl;
@@ -95,9 +95,9 @@ int main(void)
 
     // this is the actual triangle data that will be copied to                                              
     // the GPU memory                                                                                       
-    std::vector< float > host_VertexBuffer{ 0.5f, 0.5f, 0.0f,    // V0                                    
-                                            -0.5f, 0.5f, 0.0f,    // V1                                    
-                                            0.0f, -0.5f, 0.0f };   // V2                                    
+    std::vector< float > host_VertexBuffer{ 0.5f, 0.5f, 0.0f, 1.0f,0.0f,0.0f,    // V0                                    
+                                            -0.5f, 0.5f, 0.0f, 0.0f,1.0f,0.0f,    // V1                                    
+                                            0.0f, -0.5f, 0.0f, 0.0f,0.0f,1.0f, };   // V2                                    
 
     int numBytes = host_VertexBuffer.size() * sizeof(float);
 
@@ -118,14 +118,19 @@ int main(void)
     // VAO details here - we only have 1 attribute or location                                              
     // (Position of the vertex)                                                                             
     glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[0]);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
-    glBindVertexArray(0);
 
+    glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[0]);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)0);
+
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,6*sizeof(float),(void*)(3*sizeof(float)));
+
+    glBindVertexArray(0);
     // Create a shader using my GLSLObject class                                                            
     sivelab::GLSLObject shader;
-    shader.addShader( "../../starterCode/OpenGL/vertexShader_passthrough.glsl", sivelab::GLSLObject::VERTEX_SHADER );
-    shader.addShader( "../../starterCode/OpenGL/fragmentShader_passthrough.glsl", sivelab::GLSLObject::FRAGMENT_SHADER );
+    shader.addShader( "vertexShader_passthrough.glsl", sivelab::GLSLObject::VERTEX_SHADER );
+    shader.addShader( "fragmentShader_passthrough.glsl", sivelab::GLSLObject::FRAGMENT_SHADER );
     shader.createProgram();
 
     double timeDiff = 0.0, startFrameTime = 0.0, endFrameTime = 0.0;
