@@ -130,8 +130,8 @@ int main(void)
 
     // this is the actual triangle data that will be copied to                                              
     // the GPU memory                                                                                       
-    std::vector< float > host_VertexBuffer{ -3.0f, -3.0f, 0.0f, 1.0f,0.0f,0.0f,    // V0                                    
-                                           3.0f, -3.0f, 0.0f, 0.0f,1.0f,0.0f,    // V1                                    
+    std::vector< float > host_VertexBuffer{ -3.0f, -3.0f, 0.0f, -0.0f,-0.0f,1.0f,    // V0                                    
+                                           3.0f, -3.0f, 0.0f, 0.0f,-0.0f,1.0f,    // V1                                    
                                             0.0f, 3.0f, 0.0f, 0.0f,0.0f,1.0f, };   // V2                                    
 
     int numBytes = host_VertexBuffer.size() * sizeof(float);
@@ -164,14 +164,19 @@ int main(void)
     glBindVertexArray(0);
     // Create a shader using my GLSLObject class                                                            
     sivelab::GLSLObject shader;
-    shader.addShader( "vertexShader_withMatrixTransformation.glsl", sivelab::GLSLObject::VERTEX_SHADER );
-    shader.addShader( "fragmentShader_barycentric.glsl", sivelab::GLSLObject::FRAGMENT_SHADER );
+    shader.addShader( "vertexShader_PrepForPerFragment.glsl", sivelab::GLSLObject::VERTEX_SHADER );
+    shader.addShader( "blinnPhongFragmentShader.glsl", sivelab::GLSLObject::FRAGMENT_SHADER );
     shader.createProgram();
 
-    GLuint projMatrixID, viewMatrixID,modelMatrixID;
+    GLuint projMatrixID, viewMatrixID,modelMatrixID, normalMatrixID;
     projMatrixID = shader.createUniform( "projMatrix" );
     viewMatrixID = shader.createUniform( "viewMatrix" );
     modelMatrixID = shader.createUniform("modelMatrix");
+    normalMatrixID = shader.createUniform("normalMatrix");
+
+    GLuint lightPostId = shader.createUniform("lightPosWorld");
+    GLuint diffuseComponentID = shader.createUniform("diffuseComponent");
+    GLuint cameraPosID = shader.createUniform("cameraPosWorld");
 
     glm::vec3 m_pos(0,0,0), m_viewDir(0,0,-1);
     glm::vec3 m_U(1,0,0), m_V(0,1,0), m_W(0,0,1);
@@ -218,13 +223,22 @@ int main(void)
         M_model = glm::scale(M_model, glm::vec3(scale, scale, scale));
 
 
+        glm::mat4 M_normal = glm::transpose(glm::inverse(glm::mat4(M_model)));
+
+
         /* Render your objects here */
         shader.activate();
-
+        glm::vec4 lightPos(0.0f, 0.0f, 2.0f, 1.0f);
+        glm::vec3 diffuseComponent(0.0f,0.0f,1.0f);
+        glm::vec4 cameraPosWorld(camera.position, 1.0f);
+        glUniform4fv(cameraPosID, 1, glm::value_ptr(cameraPosWorld));
+        glUniform4fv(lightPostId, 1, glm::value_ptr(lightPos));
+        glUniform3fv(diffuseComponentID, 1, glm::value_ptr(diffuseComponent));
         // copy from the host to the device the view matrix and the projection matrix                                                                                       
         glUniformMatrix4fv(projMatrixID, 1, GL_FALSE, glm::value_ptr( M_proj ));
         glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, glm::value_ptr( M_view ));
         glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(M_model));
+        glUniformMatrix4fv(normalMatrixID, 1, GL_FALSE, glm::value_ptr(M_normal));
 
 
         glBindVertexArray(m_VAO);
@@ -240,9 +254,10 @@ int main(void)
         if (glfwGetKey( window, GLFW_KEY_ESCAPE ) == GLFW_PRESS) {
             glfwSetWindowShouldClose(window, 1);
         }
-        float moveRatePerFrame = 0.02;
-        float rotSpeed = 0.02f;
-        float scaleSpeed = 0.01f;
+        float moveRatePerFrame = 0.002;
+        float rotSpeed = 0.002f;
+        float scaleSpeed = 0.001f;
+
 
         glm::vec3 forward = glm::normalize(camera.target - camera.position);
         glm::vec3 right = glm::normalize(glm::cross(forward, camera.up));
