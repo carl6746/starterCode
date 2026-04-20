@@ -26,4 +26,4 @@ You can use "w,a,s,d" to do simple maneuvers around the scene. You can also use 
 There are also the typical like FPS through "t"
 
 Difference:
-    The biggest difference is that there is no shadows in the rasterized version in comparison to the ray-traced version. For other differences, the spheres don't look as smooth in the rasterized version, which makes sense because we are making them from triangles. Despite being able to increase the steps for the details, if you zoom in enough, you can still see the triangles. The triangles that are from the rasterization is brighter than the triangles from the ray tracer.
+    The biggest difference is that there is no shadows in the rasterized version in comparison to the ray-traced version. For other differences, the spheres don't look as smooth in the rasterized version, which makes sense because we are making them from triangles. Despite being able to increase the steps for the details, if you zoom in enough, you can still see the triangles.
