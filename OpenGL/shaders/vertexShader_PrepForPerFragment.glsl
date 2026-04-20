@@ -14,7 +14,7 @@ uniform vec4 lightPosWorld;
 out vec4 normal;
 out vec4 lightDir;
 out vec4 vertexWorldPos;
-//out vec3 color;
+out vec3 color;
 
 
 void main(void)

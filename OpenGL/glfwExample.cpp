@@ -20,7 +20,7 @@
 
 
 static const float RADIUS = 1.0f;
-static const int SUBDIV_LEVEL = 0;
+static const int SUBDIV_LEVEL = 5;
 
 class PerCamera {
 public:
@@ -153,38 +153,38 @@ int main(void)
     std::shared_ptr<ISceneLoader> loader = std::make_shared<SceneLoader>(sc);
     SceneParser_JSON parser(loader);
 
-    std::string filename= "C:/Users/ajcar/CS4212/starterCode/sceneData-main/scenes_A/threeTriangles.json";;
-    parser.parseFileData(filename);
+    // std::string filename= "C:/Users/ajcar/CS4212/starterCode/sceneData-main/scenes_A/lotsOTriangles.json";;
+    // parser.parseFileData(filename);
 
 
-    std::vector<float> sphereVertices = sc.glPrepareToRasterize();
-    std::cout<<sphereVertices.size()<<std::endl;
+    // std::vector<float> sphereVertices = sc.glPrepareToRasterize();
+    // std::cout<<sphereVertices.size()<<std::endl;
 
     //----------------------------------------------------------------
 
-    // std::vector<glm::vec3> cube = {
-    //     {-1,-1, 1}, { 1,-1, 1}, { 1, 1, 1},
-    //     {-1,-1, 1}, { 1, 1, 1}, {-1, 1, 1},
-    //     { 1,-1,-1}, {-1,-1,-1}, {-1, 1,-1},
-    //     { 1,-1,-1}, {-1, 1,-1}, { 1, 1,-1},
-    //     {-1,-1,-1}, {-1,-1, 1}, {-1, 1, 1},
-    //     {-1,-1,-1}, {-1, 1, 1}, {-1, 1,-1},
-    //     { 1,-1, 1}, { 1,-1,-1}, { 1, 1,-1},
-    //     { 1,-1, 1}, { 1, 1,-1}, { 1, 1, 1},
-    //     {-1, 1, 1}, { 1, 1, 1}, { 1, 1,-1},
-    //     {-1, 1, 1}, { 1, 1,-1}, {-1, 1,-1},
-    //     {-1,-1,-1}, { 1,-1,-1}, { 1,-1, 1},
-    //     {-1,-1,-1}, { 1,-1, 1}, {-1,-1, 1}
-    // };
+    std::vector<glm::vec3> cube = {
+        {-1,-1, 1}, { 1,-1, 1}, { 1, 1, 1},
+        {-1,-1, 1}, { 1, 1, 1}, {-1, 1, 1},
+        { 1,-1,-1}, {-1,-1,-1}, {-1, 1,-1},
+        { 1,-1,-1}, {-1, 1,-1}, { 1, 1,-1},
+        {-1,-1,-1}, {-1,-1, 1}, {-1, 1, 1},
+        {-1,-1,-1}, {-1, 1, 1}, {-1, 1,-1},
+        { 1,-1, 1}, { 1,-1,-1}, { 1, 1,-1},
+        { 1,-1, 1}, { 1, 1,-1}, { 1, 1, 1},
+        {-1, 1, 1}, { 1, 1, 1}, { 1, 1,-1},
+        {-1, 1, 1}, { 1, 1,-1}, {-1, 1,-1},
+        {-1,-1,-1}, { 1,-1,-1}, { 1,-1, 1},
+        {-1,-1,-1}, { 1,-1, 1}, {-1,-1, 1}
+    };
 
-    // for (auto &v : cube) {
-    //     v = normalizeToSphere(v, RADIUS);
-    // }
+    for (auto &v : cube) {
+        v = normalizeToSphere(v, RADIUS);
+    }
 
-    // for (int i = 0; i < cube.size(); i += 3)
-    // {
-    //     subdivide(cube[i],cube[i+1],cube[i+2],SUBDIV_LEVEL);
-    // }
+    for (int i = 0; i < cube.size(); i += 3)
+    {
+        subdivide(cube[i],cube[i+1],cube[i+2],SUBDIV_LEVEL);
+    }
 
     //----------------------------------------------------------------
         // Need to set a projection matrix that fits the aspect ratio set
@@ -221,7 +221,7 @@ int main(void)
     // };                        
 
     
-    int stride = 9;
+    int stride = 6;
     int numBytes = sphereVertices.size() * sizeof(float);
     int numVertices = sphereVertices.size() / stride;
 
@@ -250,8 +250,8 @@ int main(void)
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,stride * sizeof(float),(void*)(3*sizeof(float)));
     
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,9*sizeof(float),(void*)(6*sizeof(float)));
+    // glEnableVertexAttribArray(2);
+    // glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,stride*sizeof(float),(void*)(6*sizeof(float)));
     
     glBindVertexArray(0);
     // Create a shader using my GLSLObject class                                                            

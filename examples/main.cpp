@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ISceneLoader> loader = std::make_shared<SceneLoader>(sc);
     SceneParser_JSON parser(loader);
 
-    std::string filename= "C:/Users/ajcar/CS4212/starterCode/sceneData-main/scenes_A/threeTriangles.json";;
+    std::string filename= "C:/Users/ajcar/CS4212/starterCode/sceneData-main/scenes_A/lotsOTriangles.json";;
     parser.parseFileData(filename);
 
     auto pc = sc.getCamera();
