@@ -17,7 +17,7 @@ class Scene {
         Scene() {};
             friend class SceneLoader;
         
-        color computeRayColor(const ray &r, double tmin, double tmax, int depth) {
+        color computeRayColor(const ray &r, float tmin, float tmax, int depth) {
             if (lights.empty()) {
                 std::cerr << "No lights in scene!\n";
             }
@@ -28,8 +28,8 @@ class Scene {
 
             HitStruct hit;
             HitStruct shadowHit;
-            double localTmax = tmax;
-            double shadowTmax = 1.0;
+            float localTmax = tmax;
+            float shadowTmax = 1.0f;
            
             bool hitShape = false;
 
@@ -46,7 +46,7 @@ class Scene {
                 bool inShadow = false;
                 for(size_t idx=0; idx<shapes.size(); ++idx) {
                     ray shadowRay(hit.p,lights[0]->getPosition()-hit.p);
-                    if(shapes[idx]->intersect(shadowRay,0.001,shadowTmax,shadowHit)) {
+                    if(shapes[idx]->intersect(shadowRay,0.001f,shadowTmax,shadowHit)) {
                         inShadow = true;
                     }
                 }
@@ -54,8 +54,8 @@ class Scene {
                 if(hit.material) {
                     if(hit.material->is_mirror()) {
                         vec3 reflected = unit_vector(r.direction() - 2 * dot(r.direction(), hit.normal) * hit.normal);
-                        ray reflected_ray(hit.p + 0.001 * hit.normal, reflected);
-                        return computeRayColor(reflected_ray, 0.001, INFINITY, depth - 1);
+                        ray reflected_ray(hit.p + 0.001f * hit.normal, reflected);
+                        return computeRayColor(reflected_ray, 0.001f, INFINITY, depth - 1);
                     } else {
                         std::shared_ptr<Shader> shader = hit.material;
                         color c = shader->rayColor(hit,depth-1,inShadow);
@@ -63,7 +63,7 @@ class Scene {
                     }
                 } else {
                     std::cerr << "Warning: hit.material is null. Using shape color instead.\n";
-                    return color({1,0,0});  // fallback to the shape's color
+                    return color({1.0f,0.0f,0.0f});  // fallback to the shape's color
                 }
         } else {
             return bgColor;
@@ -75,10 +75,22 @@ class Scene {
             return nullptr;
         }
         
+
+        std::vector<float> glPrepareToRasterize() {
+            std::vector<float> totalVBO;
+
+            for (auto& iter : shapes) {
+                std::vector<float> vbo = iter->extractVBO();
+                totalVBO.insert(totalVBO.end(), vbo.begin(), vbo.end());
+            }
+
+            return totalVBO;
+        }
+        
     private:
         std::vector<std::shared_ptr<Light>> lights;
         std::vector<std::shared_ptr<Shape>> shapes;
         std::vector<std::shared_ptr<Camera>> cameras;
-        color bgColor = {0.0,0.0,0.0};
+        color bgColor = {1.0f,1.0f,1.0f};
         
 };

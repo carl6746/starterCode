@@ -165,7 +165,7 @@ void SceneParser_JSON::parseLight(const json &light) {
     ISceneLoader::vec normal;
     normal = light["normal"];
 
-    float width = 1.0, length = 1.0;
+    float width = 1.0f, length = 1.0f;
     width = light["width"];
     length = light["length"];
 
@@ -354,21 +354,21 @@ void SceneParser_JSON::parseShape(const json &shape) {
   }
 
   if (shapeDesc.type == "sphere") {
-    shapeDesc.center = shape.value("center", ISceneLoader::vec{0, 0, 0});
+    shapeDesc.center = shape.value("center", ISceneLoader::vec{0.0f, 0.0f, 0.0f});
     shapeDesc.radius = shape.value("radius", 1.0f);
     ;
   }
 
   else if (shapeDesc.type == "triangle") {
 
-    shapeDesc.v0 = shape.value("v0", ISceneLoader::vec{0, 0, 0});
-    shapeDesc.v1 = shape.value("v1", ISceneLoader::vec{1, 0, 0});
-    shapeDesc.v2 = shape.value("v2", ISceneLoader::vec{0, 1, 0});
+    shapeDesc.v0 = shape.value("v0", ISceneLoader::vec{0.0f, 0.0f, 0.0f});
+    shapeDesc.v1 = shape.value("v1", ISceneLoader::vec{1.0f, 0.0f, 0.0f});
+    shapeDesc.v2 = shape.value("v2", ISceneLoader::vec{0.0f, 1.0f, 0.0f});
   }
 
   else if (shapeDesc.type == "box") {
-    shapeDesc.minPt = shape.value("minPt", ISceneLoader::vec{-1, -1, -1});
-    shapeDesc.maxPt = shape.value("maxPt", ISceneLoader::vec{1, 1, 1});
+    shapeDesc.minPt = shape.value("minPt", ISceneLoader::vec{-1.0, -1.0, -1.0});
+    shapeDesc.maxPt = shape.value("maxPt", ISceneLoader::vec{1.0, 1.0, 1.0});
   }
 
   else if (shapeDesc.type == "mesh") {

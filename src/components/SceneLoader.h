@@ -31,7 +31,7 @@ public:
 
   void addCamera(const std::string &name, const std::string &type,
                const ISceneLoader::vec &pos, const ISceneLoader::vec &viewDir,
-               double focalLength, double imagePlaneWidth) override {
+               float focalLength, float imagePlaneWidth) override {
     std::cout << "Creating camera: " << name << ", type:" << type << std::endl;
 
     int nx = 1000; 
@@ -58,8 +58,8 @@ public:
   }
   void addAreaLight(const ISceneLoader::vec &pos,
                     const ISceneLoader::vec &color,
-                    const ISceneLoader::vec &normal, double width,
-                    double length) override {
+                    const ISceneLoader::vec &normal, float width,
+                    float length) override {
     std::cout << "Creating area light." << std::endl;
   }
   void addShader(const ISceneLoader::ShaderDesc &shaderDesc) override {
@@ -78,6 +78,10 @@ public:
         }
 
         s = std::make_shared<Lambert>(lightPositions, diffuse);
+    }
+    if (shaderDesc.type == "BlinnPhong") {
+
+        s = std::make_shared<Blinn>(point3({0.0f,0.0f,0.0f}), point3({0.0f,0.0f,0.0f}), diffuse);
     }
 
     shaderMap[shaderDesc.name] = s;
@@ -103,14 +107,14 @@ public:
         for (auto &light : m_targetScene.lights) {
             lightPositions.push_back(light->getPosition());
         }
-        s = std::make_shared<Lambert>(lightPositions, vec3(1.0, 1.0, 1.0));
+        s = std::make_shared<Lambert>(lightPositions, vec3(1.0f, 1.0f, 1.0f));
     }
 
     if (shapeDesc.type == "sphere") {
         point3 center(shapeDesc.center.x, shapeDesc.center.y, shapeDesc.center.z);
-        double radius = shapeDesc.radius;
+        float radius = shapeDesc.radius;
 
-        m_targetScene.shapes.push_back(std::make_shared<Sphere>(center, radius, vec3(1,1,1), s));
+        m_targetScene.shapes.push_back(std::make_shared<Sphere>(center, radius, vec3(1.0f,1.0f,1.0f), s));
     }
     
     else if (shapeDesc.type == "triangle") {
@@ -118,7 +122,7 @@ public:
         point3 v1(shapeDesc.v1.x, shapeDesc.v1.y, shapeDesc.v1.z);
         point3 v2(shapeDesc.v2.x, shapeDesc.v2.y, shapeDesc.v2.z);
 
-        m_targetScene.shapes.push_back(std::make_shared<Triangle>(v0, v1, v2, vec3(1,1,1), s));
+        m_targetScene.shapes.push_back(std::make_shared<Triangle>(v0, v1, v2, vec3(1.0f,1.0f,1.0f), s));
     }
 }
   // void addTexture(const std::string &type, const std::string &name,

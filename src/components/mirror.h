@@ -1,17 +1,19 @@
 class Mirror : public Shader {
 public:
-    Mirror(const color& albedo = {1.0, 1.0, 1.0}) : albedo(albedo) {}
+    Mirror(const color& albedo = {1.0f, 1.0f, 1.0f}) : albedo(albedo) {}
 
     bool is_mirror() override{
         return true;
     }
     point3 getLight() override {
-        return {0, 0, 0}; // not used for mirrors
+        return {0.0f, 0.0f, 0.0f}; // not used for mirrors
     }
     color rayColor(const HitStruct& h, int depth, bool inShadow) override {
-        return {0, 0, 0}; // not used, Scene handles reflections
+        return {0.0f, 0.0f, 0.0f}; // not used, Scene handles reflections
     }
-
+    color getShaderColor() {
+        return color({0.0f,0.0f,0.0f});
+    }
 
 private:
     color albedo;

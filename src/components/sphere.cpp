@@ -1,21 +1,21 @@
 #include "sphere.h"
 
-bool Sphere::intersect(const ray &ray,const double tmin, double &tmax, HitStruct& rec) {
+bool Sphere::intersect(const ray &ray,const float tmin, float &tmax, HitStruct& rec) {
     point3 e = ray.origin();
     vec3 d = ray.direction();
 
-    double A = dot(d,d);
-    double B = 2*dot(d,e-center);
-    double C = dot(e-center,e-center)-radius*radius;
+    float A = dot(d,d);
+    float B = 2*dot(d,e-center);
+    float C = dot(e-center,e-center)-radius*radius;
 
-    double descriminant = B*B-4*A*C;
-    if(descriminant < 0) {
+    float descriminant = B*B-4*A*C;
+    if(descriminant < 0.0f) {
         return false;
     }
 
-    double t = (-B - sqrt(descriminant))/(2.0*A);
+    float t = (-B - sqrt(descriminant))/(2.0f*A);
     if(t < tmin || t > tmax) {
-        t = (-B + sqrt(descriminant))/(2.0*A);
+        t = (-B + sqrt(descriminant))/(2.0f*A);
         if( t <tmin || t> tmax) {
             return false;
         }
@@ -37,5 +37,9 @@ vec3 Sphere::getColor() const{
 
 std::shared_ptr<Shader> Sphere::getShader() const{
     return material;
+}
+
+std::vector<float> Sphere::extractVBO() {
+    return std::vector({1.0f});
 }
 

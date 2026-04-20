@@ -1,11 +1,15 @@
-#pragma
+#pragma once
 #include "shader.h"
 #include <vector>
 #include <algorithm>
 
 class Blinn : public Shader {
     public:
-        Blinn(const point3 light, point3 e) : light(light),view(e) {};
+        Blinn(const point3 light, point3 e, color c) : light(light),view(e), rgb(c) {};
+
+        color getShaderColor() {
+            return rgb;
+        }
         
         color rayColor( const HitStruct &h, int depth, bool inShadow) override {
             vec3 n = unit_vector(h.normal);
@@ -14,13 +18,13 @@ class Blinn : public Shader {
 
             vec3 hVec = unit_vector(light+v);
 
-            double totalLight = 0.0;
+            float totalLight = 0.0f;
 
-            double phongExp = 64;
+            float phongExp = 64.0f;
 
             
-            vec3 spec = color({1.0,0.0,0.0})*std::max(0.0, dot(n,lDir)) + color({1.0,1.0,1.0})*std::pow(std::max(0.0,dot(n,hVec)),phongExp);
-            vec3 clampedSpec({std::clamp(spec[0],0.0,1.0),std::clamp(spec[1],0.0,1.0),std::clamp(spec[2],0.0,1.0)});
+            vec3 spec = color({1.0,0.0,0.0})*std::max(0.0f, dot(n,lDir)) + color({1.0f,1.0f,1.0f})*std::pow(std::max(0.0f,dot(n,hVec)),phongExp);
+            vec3 clampedSpec({std::clamp(spec[0],0.0f,1.0f),std::clamp(spec[1],0.0f,1.0f),std::clamp(spec[2],0.0f,1.0f)});
             return  clampedSpec; 
         }
 
@@ -34,4 +38,5 @@ class Blinn : public Shader {
     private:
         vec3 light;
         point3 view;
+        color rgb;
 };

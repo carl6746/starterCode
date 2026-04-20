@@ -4,16 +4,16 @@
 
 TEST_CASE(" Dot Product") 
 {
-    double eps = 0.001;
+    float eps = 0.001;
     vec3 v1(0.0,1.0,0.0);
     vec3 v2(0.0,0.0,1.0);
     vec3 v3(1.0,1.0,1.0);
     vec3 v4(2.0,2.0,2.0);
 
-    double dot_orth = dot(v1,v2);
-    double dot_parallel = dot(v3,v4);
-    double answer_dot_orth = 0.0;
-    double answer_dot_parallel = 6.0;
+    float dot_orth = dot(v1,v2);
+    float dot_parallel = dot(v3,v4);
+    float answer_dot_orth = 0.0;
+    float answer_dot_parallel = 6.0;
     
     REQUIRE_THAT(dot_orth, Catch::Matchers::WithinAbs(answer_dot_orth,eps));
     REQUIRE_THAT(dot_parallel, Catch::Matchers::WithinAbs(answer_dot_parallel,eps));
@@ -21,7 +21,7 @@ TEST_CASE(" Dot Product")
 
 TEST_CASE(" Cross Product ")
 {
-    double eps = 0.001;
+    float eps = 0.001;
     vec3 v1(0.0,1.0,0.0);
     vec3 v2(0.0,0.0,1.0);
     vec3 v3(1.0,1.0,1.0);
@@ -42,7 +42,7 @@ TEST_CASE( " Vector Addition ")
 {
     vec3 v1(1.0,1.0,1.0);
     vec3 v2(1.0,2.0,1.0);
-    double eps = 0.001;
+    float eps = 0.001;
     vec3 answer_sum(2.0,3.0,2.0);
     vec3 answer_diff(0.0,-1.0,0.0);
 
@@ -57,7 +57,7 @@ TEST_CASE( " Vector Addition ")
 
 TEST_CASE(" Scalar Multiplication ")
 {
-    double eps = 0.001;
+    float eps = 0.001;
 
     vec3 v1(1.0,1.0,1.0);
     vec3 v2(1.0,2.0,1.0);
@@ -82,7 +82,7 @@ TEST_CASE(" Scalar Multiplication ")
 
 TEST_CASE( "Unit Vector" )
 {
-    double eps = 0.001;
+    float eps = 0.001;
     vec3 v1(2.0,-4.0,1.0);
 
     vec3 unit_v1 = unit_vector(v1);

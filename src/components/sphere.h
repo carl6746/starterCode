@@ -6,18 +6,19 @@
 
 class Sphere : public Shape{
     public:
-        Sphere(point3 c, double r) : center(c),radius(r), col(vec3(1.0,1.0,1.0)), material(nullptr) {}
-        Sphere(point3 c, double r, color col) : center(c),radius(r), col(col), material(nullptr) {}
-        Sphere(point3 c, double r, color col, std::shared_ptr<Shader> material) : center(c),radius(r), col(col), material(material) {}
+        Sphere(point3 c, float r) : center(c),radius(r), col(vec3(1.0f,1.0f,1.0f)), material(nullptr) {}
+        Sphere(point3 c, float r, color col) : center(c),radius(r), col(col), material(nullptr) {}
+        Sphere(point3 c, float r, color col, std::shared_ptr<Shader> material) : center(c),radius(r), col(col), material(material) {}
         
-        bool intersect(const ray &ray,const double tmin, double &tmax, HitStruct& rec) override;
+        bool intersect(const ray &ray,const float tmin, float &tmax, HitStruct& rec) override;
         vec3 getColor() const override;
         std::shared_ptr<Shader> getShader() const override;
+        std::vector<float> extractVBO() override;
 
     
     private:
         point3 center;
-        double radius;
+        float radius;
         std::shared_ptr<Shader> material;
         color col;
 };

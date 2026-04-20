@@ -1,6 +1,12 @@
 #include <cstdlib>
 #include <iostream>
 #include <vector>
+#include "components/scene.h"
+#include "handleGraphicsArgs.h"
+#include "components/shader.h"
+#include "components/ISceneLoader.h"
+#include "components/SceneLoader.h"
+#include "components/SceneParser_JSON.cpp"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -12,7 +18,11 @@
 
 #include "GLSL.h"
 
-class Camera {
+
+static const float RADIUS = 1.0f;
+static const int SUBDIV_LEVEL = 0;
+
+class PerCamera {
 public:
     glm::vec3 position;  
     glm::vec3 target;     
@@ -23,7 +33,7 @@ public:
     float near;     
     float far;       
 
-    Camera(glm::vec3 pos, glm::vec3 tgt, glm::vec3 upVec,
+    PerCamera(glm::vec3 pos, glm::vec3 tgt, glm::vec3 upVec,
            float fovDeg, float aspectRatio, float near, float far)
         : position(pos), target(tgt), up(upVec),
           fov(fovDeg), aspect(aspectRatio), near(near), far(far) {}
@@ -43,6 +53,49 @@ int CheckGLErrors(const char *s)
     return errCount;
 }
 
+glm::vec3 normalizeToSphere(glm::vec3 v, float R) {
+    return glm::normalize(v) * R;
+}
+    
+std::vector<float> sphereVertices;
+
+void emitTriangle(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c) {
+    glm::vec3 n = glm::normalize(glm::cross(b - a, c - a));
+
+    auto push = [&](const glm::vec3& v){
+        sphereVertices.push_back(v.x);
+        sphereVertices.push_back(v.y);
+        sphereVertices.push_back(v.z);
+
+        sphereVertices.push_back(n.x);
+        sphereVertices.push_back(n.y);
+        sphereVertices.push_back(n.z);
+    };
+
+    push(a);
+    push(b);
+    push(c);
+}
+
+void subdivide(glm::vec3 v0, glm::vec3 v1, glm::vec3 v2, int depth) {
+    if (depth == 0)
+    {
+        emitTriangle(v0, v1, v2);
+        return;
+    }
+
+    glm::vec3 m0 = normalizeToSphere((v0 + v1) * 0.5f, RADIUS);
+    glm::vec3 m1 = normalizeToSphere((v1 + v2) * 0.5f, RADIUS);
+    glm::vec3 m2 = normalizeToSphere((v2 + v0) * 0.5f, RADIUS);
+
+    subdivide(v0, m0, m2, depth - 1);
+    subdivide(m0, v1, m1, depth - 1);
+    subdivide(m2, m1, v2, depth - 1);
+    subdivide(m0, m1, m2, depth - 1);
+}
+
+
+
 int main(void)
 {
     /* Initialize the library */
@@ -61,15 +114,8 @@ int main(void)
     float aspectRatio = 1.0; // 16.0 / 9.0; // winWidth / (float)winHeight;
     int winHeight = winWidth / aspectRatio;
 
-    Camera camera(
-        glm::vec3(0.0f, 0.0f, 10.0f),  
-        glm::vec3(0.0f, 0.0f, 0.0f),   
-        glm::vec3(0.0f, 1.0f, 0.0f),  
-        45.0f,                         
-        winWidth / (float)winHeight,   
-        0.1f,                         
-        100.0f                         
-    );
+    PerCamera camera(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f),  45.0f,  winWidth / (float)winHeight, 0.1f, 100.0f);
+
     
     GLFWwindow* window = glfwCreateWindow(winWidth, winHeight, "GLFW Example", NULL, NULL);
     if (!window) {
@@ -102,13 +148,52 @@ int main(void)
     glfwGetFramebufferSize(window, &fb_width, &fb_height);
     glViewport(0, 0, fb_width, fb_height);
 
-    // Need to set a projection matrix that fits the aspect ratio set
-    // by the window frame.
-    //
-    // The ortho parameters, in order: left, right, bottom, top, zNear, zFar
-                    // float halfWidth = 15.0 / 2.0;
-                    // float halfHeight = halfWidth / aspectRatio;
-                    // glm::mat4 projectionMatrix = glm::ortho(-halfWidth, halfWidth, -halfHeight, halfHeight, -10.0f, 10.0f);
+    Scene sc;
+    
+    std::shared_ptr<ISceneLoader> loader = std::make_shared<SceneLoader>(sc);
+    SceneParser_JSON parser(loader);
+
+    std::string filename= "C:/Users/ajcar/CS4212/starterCode/sceneData-main/scenes_A/threeTriangles.json";;
+    parser.parseFileData(filename);
+
+
+    std::vector<float> sphereVertices = sc.glPrepareToRasterize();
+    std::cout<<sphereVertices.size()<<std::endl;
+
+    //----------------------------------------------------------------
+
+    // std::vector<glm::vec3> cube = {
+    //     {-1,-1, 1}, { 1,-1, 1}, { 1, 1, 1},
+    //     {-1,-1, 1}, { 1, 1, 1}, {-1, 1, 1},
+    //     { 1,-1,-1}, {-1,-1,-1}, {-1, 1,-1},
+    //     { 1,-1,-1}, {-1, 1,-1}, { 1, 1,-1},
+    //     {-1,-1,-1}, {-1,-1, 1}, {-1, 1, 1},
+    //     {-1,-1,-1}, {-1, 1, 1}, {-1, 1,-1},
+    //     { 1,-1, 1}, { 1,-1,-1}, { 1, 1,-1},
+    //     { 1,-1, 1}, { 1, 1,-1}, { 1, 1, 1},
+    //     {-1, 1, 1}, { 1, 1, 1}, { 1, 1,-1},
+    //     {-1, 1, 1}, { 1, 1,-1}, {-1, 1,-1},
+    //     {-1,-1,-1}, { 1,-1,-1}, { 1,-1, 1},
+    //     {-1,-1,-1}, { 1,-1, 1}, {-1,-1, 1}
+    // };
+
+    // for (auto &v : cube) {
+    //     v = normalizeToSphere(v, RADIUS);
+    // }
+
+    // for (int i = 0; i < cube.size(); i += 3)
+    // {
+    //     subdivide(cube[i],cube[i+1],cube[i+2],SUBDIV_LEVEL);
+    // }
+
+    //----------------------------------------------------------------
+        // Need to set a projection matrix that fits the aspect ratio set
+        // by the window frame.
+
+        // The ortho parameters, in order: left, right, bottom, top, zNear, zFar
+        //         float halfWidth = 15.0 / 2.0;
+        //         float halfHeight = halfWidth / aspectRatio;
+        //         glm::mat4 projectionMatrix = glm::ortho(-halfWidth, halfWidth, -halfHeight, halfHeight, -10.0f, 10.0f);
 
     GLint major_version;
     glGetIntegerv(GL_MAJOR_VERSION, &major_version);
@@ -124,25 +209,29 @@ int main(void)
 
     // create a Vertex Array Buffer to hold our triangle data
     GLuint m_triangleVBO[1], m_VAO;   
+    
 
     glGenBuffers(1, m_triangleVBO);
     glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[0]);
 
     // this is the actual triangle data that will be copied to                                              
     // the GPU memory                                                                                       
-    std::vector< float > host_VertexBuffer{ -3.0f, -3.0f, 0.0f, -0.0f,-0.0f,1.0f,    // V0                                    
-                                           3.0f, -3.0f, 0.0f, 0.0f,-0.0f,1.0f,    // V1                                    
-                                            0.0f, 3.0f, 0.0f, 0.0f,0.0f,1.0f, };   // V2                                    
+    // std::vector<float> host_VertexBuffer{
+    
+    // };                        
 
-    int numBytes = host_VertexBuffer.size() * sizeof(float);
+    
+    int stride = 9;
+    int numBytes = sphereVertices.size() * sizeof(float);
+    int numVertices = sphereVertices.size() / stride;
 
     // copy the numBytes from host_VertexBuffer t the GPU and store in                                      
     // the currently bound VBO                                                                              
-    glBufferData(GL_ARRAY_BUFFER, numBytes, host_VertexBuffer.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, numBytes, sphereVertices.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     // once copied, we no longer need the data on the host                                                  
-    host_VertexBuffer.clear();
+    sphereVertices.clear();
 
     // create a vertex array object that will map the attributes in                                         
     // our vertex buffer to different location attributes for our                                           
@@ -155,17 +244,20 @@ int main(void)
     glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[0]);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride * sizeof(GLfloat), (void*)0);
 
 
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,6*sizeof(float),(void*)(3*sizeof(float)));
-
+    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,stride * sizeof(float),(void*)(3*sizeof(float)));
+    
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,9*sizeof(float),(void*)(6*sizeof(float)));
+    
     glBindVertexArray(0);
     // Create a shader using my GLSLObject class                                                            
     sivelab::GLSLObject shader;
     shader.addShader( "vertexShader_PrepForPerFragment.glsl", sivelab::GLSLObject::VERTEX_SHADER );
-    shader.addShader( "blinnPhongFragmentShader.glsl", sivelab::GLSLObject::FRAGMENT_SHADER );
+    shader.addShader( "lambertianFragmentShader.glsl", sivelab::GLSLObject::FRAGMENT_SHADER );
     shader.createProgram();
 
     GLuint projMatrixID, viewMatrixID,modelMatrixID, normalMatrixID;
@@ -229,7 +321,7 @@ int main(void)
         /* Render your objects here */
         shader.activate();
         glm::vec4 lightPos(0.0f, 0.0f, 2.0f, 1.0f);
-        glm::vec3 diffuseComponent(0.0f,0.0f,1.0f);
+        glm::vec3 diffuseComponent(0.0f,1.0f,1.0f);
         glm::vec4 cameraPosWorld(camera.position, 1.0f);
         glUniform4fv(cameraPosID, 1, glm::value_ptr(cameraPosWorld));
         glUniform4fv(lightPostId, 1, glm::value_ptr(lightPos));
@@ -242,7 +334,7 @@ int main(void)
 
 
         glBindVertexArray(m_VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArrays(GL_TRIANGLES, 0, numVertices);
         glBindVertexArray(0);
         shader.deactivate();
         // Swap the front and back buffers

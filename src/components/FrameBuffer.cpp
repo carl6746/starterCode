@@ -26,7 +26,7 @@ void Framebuffer::clearToGradient(vec3 bottom_color, vec3 top_color)
 {
     for(auto idx=0u; idx<fbStorage.size(); ++idx){
         int y = idx/width;
-        double p = double(y)/(height-1);
+        float p = float(y)/(height-1);
         fbStorage[idx] = p*bottom_color + (1-p)*top_color;
     }
 };
@@ -39,10 +39,11 @@ void Framebuffer::exportToPNG(std::string filename)
         for (int x = 0; x < width; ++x) {
 
             vec3 c = fbStorage[y * width + x];
-
-            png::byte r = static_cast<png::byte>(std::clamp(c.x(), 0.0, 255.0)*255.0);
-            png::byte g = static_cast<png::byte>(std::clamp(c.y(), 0.0, 255.0)*255.0);
-            png::byte b = static_cast<png::byte>(std::clamp(c.z(), 0.0, 255.0)*255.0);
+            // std::cout<< "W: " << x << "H: " << y << std::endl;
+            png::byte r = static_cast<png::byte>(std::clamp((c.x()), 0.0f, 255.0f)*255.0f);
+            png::byte g = static_cast<png::byte>(std::clamp((c.y()), 0.0f, 255.0f)*255.0f);
+            png::byte b = static_cast<png::byte>(std::clamp((c.z()), 0.0f, 255.0f)*255.0f);
+            // std::cout<<"C: "<< c.x() << "C: " << c.y() << "C: " << c.z() << std::endl;
 
             image[height-1-y][x] = png::rgb_pixel(r, g, b);
         }

@@ -4,7 +4,7 @@
 
 TEST_CASE("Parametric Line") 
 {
-    double eps = 0.001;
+    float eps = 0.001;
     point3 orig(0.0,0.0,0.0);
     vec3 dir(1.0,1.0,1.0);
 
@@ -19,7 +19,7 @@ TEST_CASE("Parametric Line")
 
 TEST_CASE("Get Origin/ Get Direction")
 {
-    double eps = 0.001;
+    float eps = 0.001;
     point3 orig(1.0,2.0,3.0);
     vec3 dir(1.2,3.4,5.6);  
 

@@ -13,7 +13,7 @@ class bvhNode : public Shape {
         
     }
 
-    bool intersect(const ray &ray, const double tmin, double &tmax, HitStruct& rec) override {
+    bool intersect(const ray &ray, const float tmin, float &tmax, HitStruct& rec) override {
 
     };
 
