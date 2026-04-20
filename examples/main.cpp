@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     
     std::cout<<"Made it out of loops"<<std::endl;
 
-    fb1.exportToPNG("../images/TriangleTest.png");
+    fb1.exportToPNG("images/TriangleTest.png");
     std::cout << "Image saved" <<std::endl;
     return 0;
 }

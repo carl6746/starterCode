@@ -49,7 +49,11 @@ void Framebuffer::exportToPNG(std::string filename)
         }
     }
 
-    image.write(filename);
+    try {
+        image.write(filename);
+    } catch (std::exception& e) {
+        std::cout << "Caught: " << e.what();
+    }
 };
 
 void Framebuffer::setPixelColor(int i, int j, vec3 color)

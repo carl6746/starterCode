@@ -18,11 +18,14 @@ bool Triangle::intersect(const ray &ray,const float tmin, float &tmax, HitStruct
     float l = pt_a.z()-eye.z();
 
     float M = a*(e*i - h*f)+b*(g*f-d*i)+c*(d*h-e*g);
+    if (std::abs(M) < 1e-6f) {
+        return false;
+    }
     float beta = (j*(e*i-h*f)+k*(g*f-d*i)+l*(d*h-e*g))/M;
     float gamma = (i*(a*k-j*b)+h*(j*c-a*l)+g*(b*l-k*c))/M;
     float t = -(f*(a*k-j*b)+e*(j*c-a*l)+d*(b*l-k*c))/M;
 
-    if(t<tmin || t>tmax) {
+    if(t<=tmin || t>=tmax) {
         return false;
     }
     if(gamma < 0.0f || gamma > 1.0f){
@@ -36,7 +39,7 @@ bool Triangle::intersect(const ray &ray,const float tmin, float &tmax, HitStruct
     rec.r = ray;
     rec.t = t;
     rec.p = ray.at(rec.t);
-    rec.normal = unit_vector(cross(pt_b-pt_a,pt_c-pt_a));
+    rec.normal = unit_vector(cross(pt_c-pt_a,pt_b-pt_a));
     rec.material = this->material;
 
     return true;

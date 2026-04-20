@@ -45,7 +45,7 @@ class Scene {
             if(hitShape) {
                 bool inShadow = false;
                 for(size_t idx=0; idx<shapes.size(); ++idx) {
-                    ray shadowRay(hit.p,lights[0]->getPosition()-hit.p);
+                    ray shadowRay(hit.p * 1.00001,lights[0]->getPosition()-hit.p*1.00001);
                     if(shapes[idx]->intersect(shadowRay,0.001f,shadowTmax,shadowHit)) {
                         inShadow = true;
                     }
