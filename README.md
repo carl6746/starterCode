@@ -24,6 +24,8 @@ from the build folder. Make sure to move the shaders into the build folder or th
 
 You can use "w,a,s,d" to do simple maneuvers around the scene. You can also use "x,y,z" to rotate around their respective axes with respect to the origin. 
 There are also the typical like FPS through "t"
+There is functionality to look around the scene using the mouse. Hitting "m" toggles the mouse controlling the view. If you use "1,2,3,4,5" you can manipulate the joint rotations of a defined robot
+named robot independently.
 
 Difference:
     The biggest difference is that there is no shadows in the rasterized version in comparison to the ray-traced version. For other differences, the spheres don't look as smooth in the rasterized version, which makes sense because we are making them from triangles. Despite being able to increase the steps for the details, if you zoom in enough, you can still see the triangles.
