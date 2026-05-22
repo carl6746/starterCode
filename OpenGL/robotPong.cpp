@@ -38,6 +38,12 @@ std::vector<float> sphereVertices;
 std::vector<float> cubeVertices;
 std::vector<float> planeVertices;
 
+struct MovingBall {
+    glm::vec3 position;
+    glm::vec3 target;
+    float speed;
+    bool goingPositiveX; // which side we're heading toward
+};
 
 float randRange(float min, float max) {
     return min + (max - min) * (float(rand()) / float(RAND_MAX));
@@ -114,13 +120,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     cam->updateCameraVectors();
 }
 
-struct SnowPile {
-    glm::vec3 pos;
-    float scale;
-};
-
-std::vector<SnowPile> snowPiles;
-
 glm::vec3 getGoalDirection(float time) {
     float amplitude = 10.0f; 
     float speed = 1.5f;     
@@ -132,11 +131,6 @@ glm::vec3 getGoalDirection(float time) {
 
     return glm::vec3(x, fixedY, z);
 }
-
-glm::vec3 WHITE(1.0f, 1.0f, 1.0f);
-glm::vec3 BLACK(0.0f, 0.0f, 0.0f);
-glm::vec3 ORANGE(1.0f, 0.5f, 0.1f);
-glm::vec3 BROWN(0.55f, 0.27f, 0.07f);
 
 int main(void)
 {
@@ -186,7 +180,7 @@ int main(void)
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    glClearColor(0.5, 0.5, 1.0, 1.0);
+    glClearColor(1.0, 0.7, 1.0, 1.0);
 
     int fb_width, fb_height;
     glfwGetFramebufferSize(window, &fb_width, &fb_height);
@@ -273,32 +267,6 @@ int main(void)
         planeVertices.push_back(n.y);
         planeVertices.push_back(n.z);
     }
-
-float planeLimit = 12.0f;
-
-int clusterCount = 25;
-int perCluster = 15;
-
-for (int c = 0; c < clusterCount; c++)
-{
-    float cx = randRange(-planeLimit + 2.0f, planeLimit - 2.0f);
-    float cz = randRange(-planeLimit + 2.0f, planeLimit - 2.0f);
-    float baseSize = randRange(0.25f, 0.7f);
-
-    for (int i = 0; i < perCluster; i++)
-    {
-        SnowPile p;
-        float offsetX = randRange(-1.2f, 1.2f);
-        float offsetZ = randRange(-1.2f, 1.2f);
-        p.pos = glm::vec3(cx + offsetX, 0.0f, cz + offsetZ);
-        p.pos.x = glm::clamp(p.pos.x, -planeLimit, planeLimit);
-        p.pos.z = glm::clamp(p.pos.z, -planeLimit, planeLimit);
-        float variation = randRange(0.5f, 1.5f);
-        p.scale = baseSize * variation;
-        p.pos.y = p.scale * 0.2f;
-        snowPiles.push_back(p);
-    }
-}
 
     //----------------------------------------------------------------
         // Need to set a projection matrix that fits the aspect ratio set
@@ -406,8 +374,8 @@ for (int c = 0; c < clusterCount; c++)
     glBindVertexArray(0);
     // Create a shader using my GLSLObject class                                                            
     sivelab::GLSLObject shader;
-    shader.addShader( "snowmanVertex.glsl", sivelab::GLSLObject::VERTEX_SHADER );
-    shader.addShader( "snowmanFragment.glsl", sivelab::GLSLObject::FRAGMENT_SHADER );
+    shader.addShader( "vertexShader_robotSphere.glsl", sivelab::GLSLObject::VERTEX_SHADER );
+    shader.addShader( "robotSphereFragmentShader.glsl", sivelab::GLSLObject::FRAGMENT_SHADER );
     shader.createProgram();
 
     GLuint projMatrixID, viewMatrixID,modelMatrixID, normalMatrixID;
@@ -449,6 +417,13 @@ for (int c = 0; c < clusterCount; c++)
     grant.initSimpleArm();
     int selectedTargetPos = 0;
 
+
+        MovingBall ball;
+        ball.position = glm::vec3(-10.0f, 5.0f, 0.0f);
+        ball.speed = 8.0f;
+        ball.goingPositiveX = true;
+        ball.target = glm::vec3(10.0f, 5.0f, randRange(-10.0f, 10.0f));
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -459,6 +434,19 @@ for (int c = 0; c < clusterCount; c++)
         // Clear the window's buffer (or clear the screen to our
         // background color)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        std::vector<glm::vec3> potentialTargets = {glm::vec3(12.0,12.0,0.0),glm::vec3(24.0,1.0,1.0), glm::vec3(1,24.0,1),glm::vec3(1,1,24.0)};
+        
+        glm::vec3 steveLocalTarget = ball.target - steve.getAnchor();
+        steve.setTarget(ball.target);
+        steve.solveIK();
+        steve.forwardKinematics();
+
+        glm::vec3 grantLocalTarget = ball.target - grant.getAnchor();
+        grant.setTarget(ball.target);
+        grant.solveIK();
+        grant.forwardKinematics();
+
         
         // create the view matrix from our camera data  
         glm::mat4 M_view = camera.getViewMatrix();
@@ -477,8 +465,8 @@ for (int c = 0; c < clusterCount; c++)
 
         /* Render your objects here */
         shader.activate();
-        std::vector<glm::vec4> lights = {glm::vec4(10.0f, 10.0f, 10.0f, 1.0f)};
-        glm::vec3 diffuseComponent(1.0f,1.0f,1.0f);
+        std::vector<glm::vec4> lights = {glm::vec4(0.0f, 10.0f, 10.0f, 1.0f),glm::vec4(0.0f, -10.0f, 10.0f, 1.0f),glm::vec4(0.0f, -10.0f, -10.0f, 1.0f),glm::vec4(0.0f, 10.0f, -10.0f, 1.0f)};
+        glm::vec3 diffuseComponent(0.0f,1.0f,1.0f);
         glm::vec4 cameraPosWorld(camera.position, 1.0f);
         glUniform4fv(cameraPosID, 1, glm::value_ptr(cameraPosWorld));
         glUniform1i(numLightsID, lights.size());
@@ -499,155 +487,76 @@ for (int c = 0; c < clusterCount; c++)
 
         glBindVertexArray(planeVAO);
         glDrawArrays(GL_TRIANGLES, 0, numPlaneVertices);
-      
 
-        glUniform3fv(diffuseComponentID, 1, glm::value_ptr(WHITE));
-        glm::vec3 snowmanPos = glm::vec3(0,0,0);
-        glm::vec3 midPos = snowmanPos + glm::vec3(0.0f, 1.5f, 0.0f);
-        glm::mat4 M_base = glm::translate(glm::mat4(1.0f), snowmanPos) * glm::scale(glm::mat4(1.0f), glm::vec3(1.2f));
+        glm::vec3 goalPoint = ball.position;
+        glm::vec3 dir = ball.target - ball.position;
+        float dist = glm::length(dir);
 
-        glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(M_base));
+        if (dist < 0.2f) {
+            ball.goingPositiveX = !ball.goingPositiveX;
+
+            float z = ball.goingPositiveX ? 10.0f : -10.0f;
+            float x = randRange(-8.0f, 8.0f);
+
+            ball.target = glm::vec3(x, 0.5f, z);
+        } else {
+            glm::vec3 velocity = glm::normalize(dir) * ball.speed * (float)timeDiff;
+            ball.position += velocity;
+        }
+        glm::mat4 M_ball =
+        glm::translate(glm::mat4(1.0f), ball.position) *
+        glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
+
+        glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(M_ball));
         glBindVertexArray(m_VAO);
         glDrawArrays(GL_TRIANGLES, 0, numSphereVertices);
+        // for(int i = 0; i<potentialTargets.size(); ++i ) {
+        //     glm::mat4 M_link = M_model * glm::translate(glm::mat4(1.0f), potentialTargets[i]) * glm::scale(glm::mat4(1.0f), glm::vec3(.2, .2, .2));
+        //     glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(M_link));
+        //     glBindVertexArray(m_VAO);
+        //     glDrawArrays(GL_TRIANGLES, 0, numSphereVertices);
+        // }
 
-        glm::mat4 M_mid = glm::translate(glm::mat4(1.0f), snowmanPos + glm::vec3(0.0f, 1.5f, 0.0f)) * glm::scale(glm::mat4(1.0f), glm::vec3(0.85f));
+        for (int i = 0; i < steve.joints.size(); ++i) {
+            glm::mat4 R = glm::mat4_cast(steve.joints[i].rotation);
+            glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, steve.joints[i].length));
 
-        glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(M_mid));
-        glDrawArrays(GL_TRIANGLES, 0, numSphereVertices);
+            glm::mat4 M_model = M_steve_parent * R;
 
-        glm::vec3 headPos = snowmanPos + glm::vec3(0.0f, 2.7f, 0.0f);
-
-        glm::mat4 M_head = glm::translate(glm::mat4(1.0f), headPos) * glm::scale(glm::mat4(1.0f), glm::vec3(0.6f));
-
-        glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(M_head));
-        glDrawArrays(GL_TRIANGLES, 0, numSphereVertices);
-
-        glm::vec3 hatBase = headPos + glm::vec3(0.0f, 0.45f, 0.0f);
-        glUniform3fv(diffuseComponentID, 1, glm::value_ptr(BROWN));
-
-        glm::vec3 armBase = midPos + glm::vec3(-0.9f, 0.2f, 0.0f);
-
-        glm::mat4 armTransformL = glm::translate(glm::mat4(1.0f), armBase) * glm::rotate(glm::mat4(1.0f), glm::radians(35.0f), glm::vec3(0,0,1));
-
-        int slices = 48;
-
-        for (int i = 0; i < slices; i++)
-        {
-            float angle = (360.0f / slices) * i;
-            glm::mat4 M = armTransformL * glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(1,0,0)) * glm::scale(glm::mat4(1.0f), glm::vec3(1.4f, 0.05f, 0.05f));
-            glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(M));
-            glBindVertexArray(cubeVAO);
-            glDrawArrays(GL_TRIANGLES, 0, numCubeVertices);
-        }
-        glUniform3fv(diffuseComponentID, 1, glm::value_ptr(BROWN));
-
-        glm::vec3 armBaseR = midPos + glm::vec3(0.9f, 0.2f, 0.0f);
-
-        glm::mat4 armTransformR = glm::translate(glm::mat4(1.0f), armBaseR) * glm::rotate(glm::mat4(1.0f), glm::radians(-35.0f), glm::vec3(0,0,1));
-
-        for (int i = 0; i < slices; i++)
-        {
-            float angle = (360.0f / slices) * i;
-
-            glm::mat4 M = armTransformR * glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(1,0,0)) * glm::scale(glm::mat4(1.0f), glm::vec3(1.4f, 0.05f, 0.05f));
-            glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(M));
-            glBindVertexArray(cubeVAO);
-            glDrawArrays(GL_TRIANGLES, 0, numCubeVertices);
-        }
-
-        glUniform3fv(diffuseComponentID, 1, glm::value_ptr(BLACK));
-
-        glm::mat4 brimTransform = glm::translate(glm::mat4(1.0f), hatBase);
-
-        for (int i = 0; i < slices; i++)
-        {
-            float angle = (360.0f / slices) * i;
-            glm::mat4 M = brimTransform * glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0,1,0)) *
-            glm::scale(glm::mat4(1.0f), glm::vec3(1.2f, 0.04f, 0.10f));
-            glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(M));
-            glBindVertexArray(cubeVAO);
-            glDrawArrays(GL_TRIANGLES, 0, numCubeVertices);
-        }
-
-        glm::vec3 hatCenter = hatBase + glm::vec3(0.0f, 0.5f, 0.0f);
-
-        glm::mat4 hatTransform = glm::translate(glm::mat4(1.0f), hatCenter);
-
-
-        for (int i = 0; i < slices; i++)
-        {
-            float angle = (360.0f / slices) * i;
-
-            glm::mat4 M = hatTransform * glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0,1,0)) * glm::scale(glm::mat4(1.0f), glm::vec3(0.7f, 0.9f, 0.08f));
-            glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(M));
-            glBindVertexArray(cubeVAO);
-            glDrawArrays(GL_TRIANGLES, 0, numCubeVertices);
-        }
-        
-        glUniform3fv(diffuseComponentID, 1, glm::value_ptr(BLACK));
-        glm::mat4 eyeScale = glm::scale(glm::mat4(1.0f), glm::vec3(0.08f));
-        glm::mat4 M_eyeL = glm::translate(glm::mat4(1.0f), headPos + glm::vec3(-0.22f, 0.18f, 0.55f)) * eyeScale;
-        glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(M_eyeL));
-        glBindVertexArray(m_VAO);
-        glDrawArrays(GL_TRIANGLES, 0, numSphereVertices);
-
-        glm::mat4 M_eyeR = glm::translate(glm::mat4(1.0f), headPos + glm::vec3(0.22f, 0.18f, 0.55f)) * eyeScale;
-        glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(M_eyeR));
-        glBindVertexArray(m_VAO);
-        glDrawArrays(GL_TRIANGLES, 0, numSphereVertices);
-
-        glUniform3fv(diffuseComponentID, 1, glm::value_ptr(ORANGE));
-        glm::vec3 noseBase = headPos + glm::vec3(0.0f, 0.0f, 0.60f);
-
-        glm::mat4 noseTransform =
-            glm::translate(glm::mat4(1.0f), noseBase);
-
-        int noseSegments = 36;
-
-        float step = 0.015f;
-
-        for (int i = 0; i < noseSegments; i++)
-        {
-            float t = (float)i / (float)(noseSegments - 1);
-            float thickness = 0.07f * (1.0f - t);
-            thickness = glm::max(thickness, 0.003f);
-            glm::mat4 M = noseTransform * glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, i * step)) * glm::rotate(glm::mat4(1.0f), glm::radians(i * 11.0f), glm::vec3(0,0,1)) * glm::scale(glm::mat4(1.0f),glm::vec3(thickness, thickness, 0.03f));
-            glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(M));
-            glBindVertexArray(cubeVAO);
-            glDrawArrays(GL_TRIANGLES, 0, numCubeVertices);
-        }
-
-        glUniform3fv(diffuseComponentID, 1, glm::value_ptr(BLACK));
-
-        glm::vec3 leftCorner  = headPos + glm::vec3(-0.25f, -0.10f, 0.55f);
-        glm::vec3 rightCorner = headPos + glm::vec3( 0.25f, -0.10f, 0.55f);
-
-        int segments = 8;   
-        float curveHeight = 0.15f; 
-        for (int i = 0; i <= segments; i++)
-        {
-            float t = (float)i / (float)segments;
-            glm::vec3 p = glm::mix(leftCorner, rightCorner, t);
-            float arc = sin(t * 3.14159f); 
-            p.y -= arc * curveHeight;      
-            p.z += arc * 0.08f;           
-
-            glm::mat4 M_smile =
-                glm::translate(glm::mat4(1.0f), p) *
-                glm::scale(glm::mat4(1.0f), glm::vec3(0.04f));
-
-            glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(M_smile));
-            glDrawArrays(GL_TRIANGLES, 0, numSphereVertices);
-        }
-
-
-        glUniform3fv(diffuseComponentID, 1, glm::value_ptr(WHITE));
-        for (auto &p : snowPiles)
-        {
-            glm::mat4 M_snow = glm::translate(glm::mat4(1.0f), p.pos) * glm::scale(glm::mat4(1.0f), glm::vec3(p.scale));
-            glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(M_snow));
+            glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(M_model));
             glBindVertexArray(m_VAO);
             glDrawArrays(GL_TRIANGLES, 0, numSphereVertices);
+
+            float thickness = scale;
+
+            glm::mat4 M_link = M_model * glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, steve.joints[i].length * 0.5f)) * glm::scale(glm::mat4(1.0f), glm::vec3(thickness, thickness, steve.joints[i].length));
+
+            glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(M_link));
+            glBindVertexArray(cubeVAO);
+            glDrawArrays(GL_TRIANGLES, 0, numCubeVertices);
+
+            M_steve_parent = M_model * T;
+        }
+
+        for (int i = 0; i < grant.joints.size(); ++i) {
+            glm::mat4 R = glm::mat4_cast(grant.joints[i].rotation);
+            glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, grant.joints[i].length));
+
+            glm::mat4 M_model = M_grant_parent * R;
+
+            glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(M_model));
+            glBindVertexArray(m_VAO);
+            glDrawArrays(GL_TRIANGLES, 0, numSphereVertices);
+
+            float thickness = scale;
+
+            glm::mat4 M_link = M_model * glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, grant.joints[i].length * 0.5f)) * glm::scale(glm::mat4(1.0f), glm::vec3(thickness, thickness, grant.joints[i].length));
+
+            glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(M_link));
+            glBindVertexArray(cubeVAO);
+            glDrawArrays(GL_TRIANGLES, 0, numCubeVertices);
+
+            M_grant_parent = M_model * T;
         }
 
         glBindVertexArray(0);
@@ -670,8 +579,58 @@ for (int c = 0; c < clusterCount; c++)
         glm::vec3 right = glm::normalize(glm::cross(forward, camera.up));
         static bool nWasDown = false;
 
+        if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS) {
+            if (!nWasDown) {
 
-            if (glfwGetKey( window, GLFW_KEY_ESCAPE ) == GLFW_PRESS) {
+                selectedTargetPos += 1;
+
+                if (selectedTargetPos >= potentialTargets.size()) {
+                    selectedTargetPos = 0;
+                }
+
+                std::cout << "Target " << selectedTargetPos << std::endl;
+            }
+            nWasDown = true;
+        } else {
+            nWasDown = false;
+        }
+
+        // if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+        //     if(glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS && glfwGetKey(window,GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        //         robot.joints[0].rotation *= glm::inverse(angleAxis(speed * dt,glm::vec3(1,0,0)));
+        //     } else {
+        //         robot.joints[0].rotation *= glm::angleAxis(speed * dt,glm::vec3(1,0,0));
+        //     }
+        // }
+        // if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+        //     if(glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS && glfwGetKey(window,GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        //         robot.joints[0].rotation *= glm::inverse(angleAxis(speed * dt,glm::vec3(0,1,0)));
+        //     } else {
+        //         robot.joints[0].rotation *= glm::angleAxis(speed * dt,glm::vec3(0,1,0));
+        //     }
+        // }
+        // if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
+        //     if(glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS && glfwGetKey(window,GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        //         robot.joints[1].rotation *= glm::inverse(angleAxis(speed * dt,glm::vec3(1,0,0)));
+        //     } else {
+        //         robot.joints[1].rotation *= glm::angleAxis(speed * dt,glm::vec3(1,0,0));
+        //     }
+        // }
+        // if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
+        //     if(glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS && glfwGetKey(window,GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        //         robot.joints[1].rotation *= glm::inverse(angleAxis(speed * dt,glm::vec3(0,1,0)));
+        //     } else {
+        //         robot.joints[1].rotation *= glm::angleAxis(speed * dt,glm::vec3(0,1,0));
+        //     }
+        // }
+        // if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
+        //     if(glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS && glfwGetKey(window,GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        //         robot.joints[2].rotation *= glm::inverse(angleAxis(speed * dt,glm::vec3(0,1,0)));
+        //     } else {
+        //         robot.joints[2].rotation *= glm::angleAxis(speed * dt,glm::vec3(0,1,0));
+        //     }
+        // }
+        if (glfwGetKey( window, GLFW_KEY_ESCAPE ) == GLFW_PRESS) {
                     glfwSetWindowShouldClose(window, 1);
                 }
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
